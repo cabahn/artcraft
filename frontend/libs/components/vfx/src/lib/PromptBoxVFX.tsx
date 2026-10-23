@@ -277,6 +277,7 @@ export const PromptBoxVFX = ({
               rows={3}
               className="max-h-40 min-h-[3.5rem] w-full resize-none bg-transparent text-sm text-base-fg placeholder-base-fg/50 focus:outline-none"
               onKeyDown={(e) => {
+                if (e.nativeEvent.isComposing) return;
                 if (e.key === "Escape") {
                   e.preventDefault();
                   setShowPromptPopover(false);

@@ -61,7 +61,7 @@ export const FolderNameDialog: React.FC<FolderNameDialogProps> = ({
           value={value}
           onChange={(e) => setValue(e.target.value)}
           onKeyDown={(e) => {
-            if (e.key === "Enter") submit();
+            if (e.key === "Enter" && !e.nativeEvent.isComposing) submit();
           }}
           className="w-full rounded-[3px] border border-ui-panel-border bg-ui-controls/40 px-3 py-1.5 text-sm text-base-fg outline-none focus:ring-1 focus:ring-primary/50"
           autoFocus

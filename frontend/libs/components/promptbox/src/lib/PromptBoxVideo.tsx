@@ -1243,6 +1243,9 @@ export const PromptBoxVideo = ({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    // Keys during an IME composition (e.g. Hangul) belong to the IME.
+    if (e.nativeEvent.isComposing) return;
+
     // Handle mention dropdown navigation
     if (mentionOpen && mentionItems.length > 0) {
       if (e.key === "ArrowDown") {
@@ -1382,7 +1385,7 @@ export const PromptBoxVideo = ({
                   }
                   className="promptbox-scrollbar text-md relative min-h-[2.5em] w-full resize-y overflow-y-auto bg-transparent pr-8 text-base-fg"
                   onKeyDown={(e) => {
-                    if (e.key !== "Enter") return;
+                    if (e.key !== "Enter" || e.nativeEvent.isComposing) return;
                     const isSubmitCombo = enterToGenerate && !e.shiftKey;
                     if (isSubmitCombo) {
                       e.preventDefault();

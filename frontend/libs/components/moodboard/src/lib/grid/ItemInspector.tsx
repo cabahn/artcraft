@@ -169,7 +169,7 @@ export const ItemInspector = ({
                   value={tagDraft}
                   onChange={(e) => setTagDraft(e.target.value)}
                   onKeyDown={(e) => {
-                    if (e.key === "Enter") commitTag();
+                    if (e.key === "Enter" && !e.nativeEvent.isComposing) commitTag();
                   }}
                   onBlur={commitTag}
                   placeholder="Add tag"

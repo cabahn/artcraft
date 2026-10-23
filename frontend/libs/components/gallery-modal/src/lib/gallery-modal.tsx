@@ -2705,6 +2705,7 @@ export const GalleryModal = React.memo(
                           value={renameValue}
                           onChange={(e) => setRenameValue(e.target.value)}
                           onKeyDown={(e) => {
+                            if (e.nativeEvent.isComposing) return;
                             if (e.key === "Enter") handleConfirmRename();
                             if (e.key === "Escape") setRenamingFolderId(null);
                           }}

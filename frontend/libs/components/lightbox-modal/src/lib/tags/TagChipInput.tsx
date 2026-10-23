@@ -104,6 +104,8 @@ export function TagChipInput({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    // Keys during an IME composition (e.g. Hangul) belong to the IME.
+    if (e.nativeEvent.isComposing) return;
     if (e.key === "Enter" || e.key === ",") {
       e.preventDefault();
       if (dropdownOpen && highlight >= 0) {

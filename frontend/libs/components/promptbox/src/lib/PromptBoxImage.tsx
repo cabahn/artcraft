@@ -457,7 +457,7 @@ export const PromptBoxImage = ({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key !== "Enter") return;
+    if (e.key !== "Enter" || e.nativeEvent.isComposing) return;
     const isSubmitCombo = enterToGenerate && !e.shiftKey;
     if (isSubmitCombo) {
       e.preventDefault();

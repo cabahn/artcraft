@@ -343,7 +343,7 @@ export const PromptBox2D = ({
     // Stop propagation of keyboard events to prevent them from reaching the canvas
     e.stopPropagation();
 
-    if (e.key !== "Enter") return;
+    if (e.key !== "Enter" || e.nativeEvent.isComposing) return;
     const isSubmitCombo = enterToGenerate && !e.shiftKey;
     if (isSubmitCombo) {
       e.preventDefault();

@@ -142,6 +142,7 @@ export const SceneTitleInput = ({ pageName }: Props) => {
             }}
             autoFocus={true}
             onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+              if (e.nativeEvent.isComposing) return;
               if (e.key === "Enter") {
                 (e.target as HTMLInputElement).blur();
               } else if (e.key === "Escape") {

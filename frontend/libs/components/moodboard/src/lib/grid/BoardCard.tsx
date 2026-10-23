@@ -352,6 +352,7 @@ const NoteEditor = ({
         onBlur={() => onCommit(draft.trim())}
         onKeyDown={(e) => {
           e.stopPropagation();
+          if (e.nativeEvent.isComposing) return;
           if (e.key === "Enter" && !e.shiftKey) {
             e.preventDefault();
             onCommit(draft.trim());

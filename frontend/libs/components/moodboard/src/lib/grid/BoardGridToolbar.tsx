@@ -205,6 +205,7 @@ const BoardTitle = ({
         value={draft}
         onChange={(e) => setDraft(e.target.value)}
         onKeyDown={(e) => {
+          if (e.nativeEvent.isComposing) return;
           if (e.key === "Enter") commit();
           else if (e.key === "Escape") setEditing(false);
         }}

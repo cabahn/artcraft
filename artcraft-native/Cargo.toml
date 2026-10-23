@@ -38,6 +38,8 @@ rfd = "0.16"
 rodio = { version = "0.20", default-features = false, features = ["symphonia-all"] }
 serde.workspace = true
 serde_json.workspace = true
+# Checks a system Hangul font before handing it to egui, which panics on fonts it can't parse.
+skrifa = "0.44"
 tempfile.workspace = true
 tokio = { workspace = true, features = ["rt-multi-thread", "sync", "time", "fs"] }
 url.workspace = true

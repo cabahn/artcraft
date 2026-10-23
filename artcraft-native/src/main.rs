@@ -5,6 +5,7 @@
 mod app;
 mod backend;
 mod feed;
+mod hangul_font;
 mod models;
 mod overlays;
 mod pages;

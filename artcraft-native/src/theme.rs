@@ -8,6 +8,8 @@ use std::sync::Arc;
 use egui::epaint::text::VariationCoords;
 use egui::{Color32, CornerRadius, FontData, FontDefinitions, FontFamily, FontId, FontTweak, Stroke, TextStyle, Visuals};
 
+use crate::hangul_font::{Weight, hangul_fonts};
+
 const fn hex(rgb: u32) -> Color32 {
   let [_, r, g, b] = rgb.to_be_bytes();
   Color32::from_rgb(r, g, b)
@@ -170,8 +172,9 @@ pub fn apply(ctx: &egui::Context) {
   });
 }
 
-/// A font registered under `name`: its file, its variation coordinates and its family.
-type Face<'a> = (&'a str, &'static [u8], &'a [([u8; 4], f32)], FontFamily);
+/// A font registered under `name`: its file, its variation coordinates, its family and the
+/// Hangul weight that family falls back to.
+type Face<'a> = (&'a str, &'static [u8], &'a [([u8; 4], f32)], FontFamily, Weight);
 
 /// Registers the three variable fonts, each at the weights (and width) the webapp uses.
 fn install_fonts(ctx: &egui::Context) {
@@ -181,13 +184,44 @@ fn install_fonts(ctx: &egui::Context) {
   let mut fonts = FontDefinitions::default();
   // egui's own fonts stay behind ours, for symbols and emoji ours don't have.
   let fallback = fonts.families.get(&FontFamily::Proportional).cloned().unwrap_or_default();
-  let faces: [Face<'_>; 7] = [("Inter", INTER, &[(*b"wght", 400.0), (*b"opsz", 14.0)], FontFamily::Proportional), ("Inter-Medium", INTER, &[(*b"wght", 500.0), (*b"opsz", 14.0)], medium()), ("Inter-SemiBold", INTER, &[(*b"wght", 600.0), (*b"opsz", 14.0)], semibold()), ("Archivo-Display", ARCHIVO, &[(*b"wght", 620.0), (*b"wdth", 118.0)], display()), ("GeistMono", GEIST_MONO, &[(*b"wght", 400.0)], FontFamily::Monospace), ("GeistMono-Medium", GEIST_MONO, &[(*b"wght", 500.0)], mono()), ("GeistMono-SemiBold", GEIST_MONO, &[(*b"wght", 650.0)], mono_bold())];
-  for (name, bytes, coords, family) in faces {
+  // A system Hangul font goes last of all, as none of the above has Hangul.
+  let hangul = hangul_fonts();
+  if let Some(hangul) = hangul {
+    for weight in Weight::ALL {
+      fonts.font_data.insert(weight.font_name().to_owned(), Arc::new(FontData::from_static(hangul.face(weight))));
+    }
+  }
+  let faces: [Face<'_>; 7] = [("Inter", INTER, &[(*b"wght", 400.0), (*b"opsz", 14.0)], FontFamily::Proportional, Weight::Regular), ("Inter-Medium", INTER, &[(*b"wght", 500.0), (*b"opsz", 14.0)], medium(), Weight::Medium), ("Inter-SemiBold", INTER, &[(*b"wght", 600.0), (*b"opsz", 14.0)], semibold(), Weight::SemiBold), ("Archivo-Display", ARCHIVO, &[(*b"wght", 620.0), (*b"wdth", 118.0)], display(), Weight::SemiBold), ("GeistMono", GEIST_MONO, &[(*b"wght", 400.0)], FontFamily::Monospace, Weight::Regular), ("GeistMono-Medium", GEIST_MONO, &[(*b"wght", 500.0)], mono(), Weight::Medium), ("GeistMono-SemiBold", GEIST_MONO, &[(*b"wght", 650.0)], mono_bold(), Weight::SemiBold)];
+  for (name, bytes, coords, family, weight) in faces {
     let tweak = FontTweak { coords: VariationCoords::new(coords.iter().copied()), ..Default::default() };
     fonts.font_data.insert(name.to_owned(), Arc::new(FontData::from_static(bytes).tweak(tweak)));
     let mut stack = vec![name.to_owned()];
     stack.extend(fallback.iter().cloned());
+    if hangul.is_some() {
+      stack.push(weight.font_name().to_owned());
+    }
     fonts.families.insert(family, stack);
   }
   ctx.set_fonts(fonts);
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  #[test]
+  fn every_family_draws_hangul_when_the_system_has_a_hangul_font() {
+    // macOS and Windows ship one; without one (some Linux setups) Korean still shows as boxes.
+    if hangul_fonts().is_none() {
+      return;
+    }
+    let ctx = egui::Context::default();
+    apply(&ctx);
+    // Fonts are built on the first pass; its font texture has nowhere to go here.
+    ctx.run_ui(egui::RawInput::default(), |_| {}).textures_delta.clear();
+    for family in [FontFamily::Proportional, medium(), semibold(), display(), FontFamily::Monospace, mono(), mono_bold()] {
+      let font = FontId::new(14.0, family);
+      assert!(ctx.fonts_mut(|fonts| fonts.has_glyphs(&font, "한글 프롬프트")), "{font:?}");
+    }
+  }
 }
